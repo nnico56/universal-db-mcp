@@ -19,7 +19,7 @@
 
 ✅ **智能表结构理解** - 自动获取数据库 Schema，提供精准建议
 
-✅ **多数据库支持** - MySQL、PostgreSQL、Redis、Oracle、达梦、SQL Server、MongoDB、SQLite、KingbaseES 一键切换
+✅ **多数据库支持** - MySQL、PostgreSQL、Redis、Oracle、达梦、SQL Server、MongoDB、SQLite、KingbaseES、GaussDB/OpenGauss 一键切换
 
 ✅ **安全第一** - 默认只读模式，防止误操作删库
 
@@ -33,7 +33,7 @@
 
 - Node.js >= 20
 - Claude Desktop 应用
-- 至少一个数据库实例（MySQL/PostgreSQL/Redis/Oracle/达梦/SQL Server/MongoDB/SQLite/KingbaseES）
+- 至少一个数据库实例（MySQL/PostgreSQL/Redis/Oracle/达梦/SQL Server/MongoDB/SQLite/KingbaseES/GaussDB）
 
 ### 安装
 
@@ -126,6 +126,33 @@ npx universal-db-mcp
 - 默认端口为 54321
 - 使用与 PostgreSQL 相同的驱动（pg）
 
+#### GaussDB / OpenGauss 示例
+
+```json
+{
+  "mcpServers": {
+    "gaussdb-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "gaussdb",
+        "--host", "localhost",
+        "--port", "5432",
+        "--user", "gaussdb",
+        "--password", "your_password",
+        "--database", "postgres"
+      ]
+    }
+  }
+}
+```
+
+**说明**：
+- GaussDB 和 OpenGauss 基于 PostgreSQL 开发，兼容 PostgreSQL 协议
+- 默认端口为 5432
+- 可以使用 `--type gaussdb` 或 `--type opengauss`
+- 使用与 PostgreSQL 相同的驱动（pg）
+
 ### 启动使用
 
 1. 重启 Claude Desktop
@@ -168,6 +195,7 @@ Claude 会自动调用数据库工具完成查询！
 | MongoDB | `--type mongodb` | 27017 | ✅ 已支持 | 支持 MongoDB 4.0+ |
 | SQLite | `--type sqlite` | - | ✅ 已支持 | 本地文件数据库 |
 | KingbaseES（人大金仓） | `--type kingbase` | 54321 | ✅ 已支持 | 兼容 PostgreSQL 协议 |
+| GaussDB / OpenGauss | `--type gaussdb` 或 `--type opengauss` | 5432 | ✅ 已支持 | 华为高斯数据库，兼容 PostgreSQL |
 
 **注意**:
 - 达梦数据库驱动 `dmdb` 会作为可选依赖自动安装。如果安装失败，请手动运行 `npm install -g dmdb`。
@@ -179,7 +207,7 @@ Claude 会自动调用数据库工具完成查询！
 universal-db-mcp [选项]
 
 选项：
-  --type <db>              数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase)
+  --type <db>              数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase|gaussdb|opengauss)
   --host <host>            数据库主机地址 (默认: localhost)
   --port <port>            数据库端口
   --user <user>            用户名
@@ -205,7 +233,8 @@ src/
 │   ├── sqlserver.ts
 │   ├── mongodb.ts
 │   ├── sqlite.ts
-│   └── kingbase.ts
+│   ├── kingbase.ts
+│   └── gaussdb.ts
 ├── types/             # TypeScript 类型定义
 │   └── adapter.ts
 ├── utils/             # 工具函数

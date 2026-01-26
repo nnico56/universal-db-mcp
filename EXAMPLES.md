@@ -13,6 +13,7 @@
 - [MongoDB 使用示例](#mongodb-使用示例)
 - [SQLite 使用示例](#sqlite-使用示例)
 - [KingbaseES 使用示例](#kingbasees-使用示例)
+- [GaussDB / OpenGauss 使用示例](#gaussdb--opengauss-使用示例)
 - [Claude Desktop 配置示例](#claude-desktop-配置示例)
 - [常见使用场景](#常见使用场景)
 
@@ -965,6 +966,181 @@ Claude 会（在写入模式下）:
 
 ---
 
+## GaussDB / OpenGauss 使用示例
+
+### 基础配置（只读模式）
+
+```json
+{
+  "mcpServers": {
+    "gaussdb-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "gaussdb",
+        "--host", "localhost",
+        "--port", "5432",
+        "--user", "gaussdb",
+        "--password", "your_password",
+        "--database", "postgres"
+      ]
+    }
+  }
+}
+```
+
+**提示**: 也可以使用 `--type opengauss` 作为别名。
+
+### 启用写入模式
+
+```json
+{
+  "mcpServers": {
+    "gaussdb-write": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "gaussdb",
+        "--host", "localhost",
+        "--port", "5432",
+        "--user", "gaussdb",
+        "--password", "your_password",
+        "--database", "mydb",
+        "--danger-allow-write"
+      ]
+    }
+  }
+}
+```
+
+### 连接华为云 GaussDB
+
+```json
+{
+  "mcpServers": {
+    "gaussdb-cloud": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "gaussdb",
+        "--host", "gaussdb.cn-north-4.myhuaweicloud.com",
+        "--port", "5432",
+        "--user", "dbuser",
+        "--password", "secure_password",
+        "--database", "production"
+      ]
+    }
+  }
+}
+```
+
+### 与 Claude 对话示例
+
+**用户**: 查看数据库中有哪些表？
+
+**Claude 会自动**:
+1. 调用 `get_schema` 工具
+2. 执行查询获取 public schema 下的所有表
+3. 返回表列表
+
+**用户**: 查看 products 表的结构
+
+**Claude 会自动**:
+1. 调用 `get_table_info` 工具
+2. 返回列信息、主键、索引等详细信息
+
+**用户**: 统计每个类别的产品数量
+
+**Claude 会自动**:
+1. 理解需求
+2. 生成 SQL: `SELECT category, COUNT(*) as count FROM products GROUP BY category ORDER BY count DESC`
+3. 执行并返回结果
+
+**用户**: 查找价格最高的 10 个产品
+
+**Claude 会自动**:
+1. 生成 SQL: `SELECT * FROM products ORDER BY price DESC LIMIT 10`
+2. 执行并返回结果
+
+### 注意事项
+
+1. **默认端口**: GaussDB/OpenGauss 默认端口为 5432（与 PostgreSQL 相同）
+2. **兼容性**: 基于 PostgreSQL 9.2 开发，兼容 PostgreSQL 协议和大部分 SQL 语法
+3. **驱动**: 使用 PostgreSQL 的 `pg` 驱动
+4. **Schema**: 默认查询 public schema 下的表
+5. **参数化查询**: 支持 `$1, $2, ...` 占位符
+6. **国产化**: 华为自研数据库，适用于国产化替代场景
+7. **开源版本**: OpenGauss 是 GaussDB 的开源版本
+
+### 支持的版本
+
+- ✅ GaussDB 100/200/300 系列
+- ✅ OpenGauss 2.x / 3.x / 5.x
+- ✅ 其他兼容 PostgreSQL 协议的版本
+
+### 常见使用场景
+
+#### 1. 华为云数据库管理
+
+连接华为云 GaussDB 进行数据查询和分析：
+
+```
+用户: 帮我分析最近一周的用户增长趋势
+
+Claude 会:
+1. 查询用户表
+2. 按日期分组统计
+3. 生成趋势分析报告
+```
+
+#### 2. 国产化数据库迁移
+
+从 PostgreSQL 迁移到 GaussDB：
+
+```
+用户: 帮我分析现有表结构，准备迁移到 GaussDB
+
+Claude 会:
+1. 获取完整的 Schema 信息
+2. 分析表结构、索引、约束
+3. 提供迁移建议和兼容性分析
+```
+
+#### 3. 性能优化
+
+```
+用户: 这个查询很慢，帮我优化
+
+Claude 会:
+1. 分析查询语句
+2. 检查索引情况
+3. 提供优化建议（添加索引、重写查询等）
+```
+
+#### 4. 数据分析和报表
+
+```
+用户: 生成本月销售报表
+
+Claude 会:
+1. 理解需求
+2. 生成复杂的聚合查询
+3. 返回格式化的分析结果
+```
+
+### GaussDB 特色功能
+
+虽然使用 PostgreSQL 协议，但 GaussDB 有一些特色功能：
+
+- **列存储**: 支持列存储表（需要特定语法）
+- **分区表**: 增强的分区表功能
+- **并行查询**: 更强的并行查询能力
+- **AI 能力**: 内置 AI 引擎（部分版本）
+
+**注意**: 这些特色功能可能需要特定的 SQL 语法，Claude 会根据标准 PostgreSQL 语法生成查询。
+
+---
+
 ## Claude Desktop 配置示例
 
 ### 同时连接多个数据库
@@ -1039,6 +1215,18 @@ Claude 会（在写入模式下）:
         "--password", "your_password",
         "--database", "test"
       ]
+    },
+    "gaussdb-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "gaussdb",
+        "--host", "localhost",
+        "--port", "5432",
+        "--user", "gaussdb",
+        "--password", "your_password",
+        "--database", "postgres"
+      ]
     }
   }
 }
@@ -1052,6 +1240,7 @@ Claude 会（在写入模式下）:
 - "在 Oracle 数据仓库中统计..."
 - "从 SQLite 本地数据库查询..."
 - "在 KingbaseES 数据库中查询..."
+- "从 GaussDB 数据库获取..."
 
 ---
 
