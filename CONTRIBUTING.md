@@ -56,6 +56,7 @@
 - **TiDB** (`src/adapters/tidb.ts`) - 分布式 NewSQL 数据库，兼容 MySQL 5.7
 - **ClickHouse** (`src/adapters/clickhouse.ts`) - 列式 OLAP 数据库，使用 HTTP 协议
 - **PolarDB** (`src/adapters/polardb.ts`) - 云原生数据库，兼容 MySQL
+- **Vastbase** (`src/adapters/vastbase.ts`) - 国产数据库，兼容 PostgreSQL
 
 ### 示例结构
 

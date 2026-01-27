@@ -18,6 +18,7 @@
 - [TiDB 使用示例](#tidb-使用示例)
 - [ClickHouse 使用示例](#clickhouse-使用示例)
 - [PolarDB 使用示例](#polardb-使用示例)
+- [Vastbase 使用示例](#vastbase-使用示例)
 - [Claude Desktop 配置示例](#claude-desktop-配置示例)
 - [常见使用场景](#常见使用场景)
 
@@ -1915,6 +1916,214 @@ PolarDB 作为云原生数据库，有许多特色功能：
    - 设置白名单
    - 定期更换密码
    - 使用 RAM 账号管理权限
+
+---
+
+## Vastbase 使用示例
+
+### 基础配置（只读模式）
+
+```json
+{
+  "mcpServers": {
+    "vastbase-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "vastbase",
+        "--host", "localhost",
+        "--port", "5432",
+        "--user", "vastbase",
+        "--password", "your_password",
+        "--database", "postgres"
+      ]
+    }
+  }
+}
+```
+
+### 启用写入模式
+
+```json
+{
+  "mcpServers": {
+    "vastbase-write": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "vastbase",
+        "--host", "localhost",
+        "--port", "5432",
+        "--user", "vastbase",
+        "--password", "your_password",
+        "--database", "mydb",
+        "--danger-allow-write"
+      ]
+    }
+  }
+}
+```
+
+### 连接 Vastbase 集群
+
+```json
+{
+  "mcpServers": {
+    "vastbase-cluster": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "vastbase",
+        "--host", "vastbase-cluster.example.com",
+        "--port", "5432",
+        "--user", "your_username",
+        "--password", "your_password",
+        "--database", "production"
+      ]
+    }
+  }
+}
+```
+
+### 与 Claude 对话示例
+
+**用户**: 查看数据库中有哪些表？
+
+**Claude 会自动**:
+1. 调用 `get_schema` 工具
+2. 查询 `information_schema.tables`
+3. 返回表列表
+
+**用户**: 查看 employees 表的结构
+
+**Claude 会自动**:
+1. 调用 `get_table_info` 工具
+2. 查询 `information_schema.columns`
+3. 返回列信息、主键、索引等详细信息
+
+**用户**: 统计每个部门的员工数量
+
+**Claude 会自动**:
+1. 理解需求
+2. 生成 SQL: `SELECT department, COUNT(*) as employee_count FROM employees GROUP BY department ORDER BY employee_count DESC`
+3. 执行并返回结果
+
+**用户**: 查找最近一周入职的员工
+
+**Claude 会自动**:
+1. 生成 SQL: `SELECT * FROM employees WHERE hire_date >= CURRENT_DATE - INTERVAL '7 days' ORDER BY hire_date DESC`
+2. 执行并返回结果
+
+### 注意事项
+
+1. **默认端口**: 5432（与 PostgreSQL 相同）
+2. **兼容性**: 兼容 PostgreSQL 协议和大部分 SQL 语法
+3. **驱动**: 使用 PostgreSQL 的 `pg` 驱动
+4. **国产数据库**: 海量数据公司开发，支持国产化替代
+5. **企业级特性**:
+   - 支持分布式架构
+   - 支持高可用集群
+   - 支持数据加密
+   - 支持审计日志
+
+### 支持的版本
+
+- ✅ Vastbase G100 V2.2
+- ✅ Vastbase G100 V2.3
+- ✅ 其他兼容 PostgreSQL 的版本
+
+### 常见使用场景
+
+#### 1. 国产化替代
+
+使用 Vastbase 替代 PostgreSQL 或 Oracle：
+
+```
+用户: 查询用户表中的所有数据
+
+Claude 会:
+1. 查询用户表
+2. 返回结果
+3. 完全兼容 PostgreSQL 语法
+```
+
+#### 2. 企业级应用
+
+```
+用户: 查询订单表，需要关联多个表
+
+Claude 会:
+1. 生成复杂的 JOIN 查询
+2. 利用 Vastbase 的查询优化
+3. 返回结果
+```
+
+#### 3. 数据分析
+
+```
+用户: 分析最近一个月的销售趋势
+
+Claude 会:
+1. 生成聚合查询
+2. 按日期分组统计
+3. 生成趋势分析报告
+```
+
+#### 4. 高可用场景
+
+```
+用户: 连接 Vastbase 集群进行查询
+
+Claude 会:
+1. 连接到集群地址
+2. 自动负载均衡
+3. 保证高可用性
+```
+
+### Vastbase 特色功能
+
+Vastbase 作为国产数据库，有一些特色功能：
+
+- **PostgreSQL 兼容**: 兼容 PostgreSQL 协议和语法
+- **分布式架构**: 支持分布式部署和查询
+- **高可用**: 支持主备切换和故障转移
+- **数据加密**: 支持透明数据加密（TDE）
+- **审计日志**: 完善的审计日志功能
+- **国产化**: 支持国产操作系统和芯片
+
+**注意**: 这些特色功能可能需要特定的配置或 SQL 语法，Claude 会根据标准 PostgreSQL 语法生成查询。
+
+### Vastbase 最佳实践
+
+1. **表设计**:
+   - 使用合适的数据类型
+   - 合理设计主键和索引
+   - 使用分区表提升性能
+   - 避免过度规范化
+
+2. **查询优化**:
+   - 使用 EXPLAIN 分析查询计划
+   - 创建合适的索引
+   - 避免 SELECT *
+   - 使用 LIMIT 限制返回结果
+
+3. **连接管理**:
+   - 使用连接池
+   - 合理设置连接数
+   - 定期检查连接健康状态
+   - 避免长时间持有连接
+
+4. **监控维护**:
+   - 监控数据库性能指标
+   - 定期执行 VACUUM
+   - 更新统计信息
+   - 定期备份数据
+
+5. **安全建议**:
+   - 使用强密码
+   - 限制网络访问
+   - 启用 SSL 连接
+   - 定期审计日志
 
 ---
 

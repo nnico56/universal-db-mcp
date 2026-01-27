@@ -19,7 +19,7 @@
 
 ✅ **智能表结构理解** - 自动获取数据库 Schema，提供精准建议
 
-✅ **多数据库支持** - MySQL、PostgreSQL、Redis、Oracle、达梦、SQL Server、MongoDB、SQLite、KingbaseES、GaussDB/OpenGauss、OceanBase、TiDB、ClickHouse、PolarDB 一键切换
+✅ **多数据库支持** - MySQL、PostgreSQL、Redis、Oracle、达梦、SQL Server、MongoDB、SQLite、KingbaseES、GaussDB/OpenGauss、OceanBase、TiDB、ClickHouse、PolarDB、Vastbase 一键切换
 
 ✅ **安全第一** - 默认只读模式，防止误操作删库
 
@@ -33,7 +33,7 @@
 
 - Node.js >= 20
 - Claude Desktop 应用
-- 至少一个数据库实例（MySQL/PostgreSQL/Redis/Oracle/达梦/SQL Server/MongoDB/SQLite/KingbaseES/GaussDB/OceanBase/TiDB/ClickHouse/PolarDB）
+- 至少一个数据库实例（MySQL/PostgreSQL/Redis/Oracle/达梦/SQL Server/MongoDB/SQLite/KingbaseES/GaussDB/OceanBase/TiDB/ClickHouse/PolarDB/Vastbase）
 
 ### 安装
 
@@ -261,6 +261,33 @@ npx universal-db-mcp
 - 支持一写多读架构，读写分离
 - 使用与 MySQL 相同的驱动（mysql2）
 
+#### Vastbase 示例
+
+```json
+{
+  "mcpServers": {
+    "vastbase-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "vastbase",
+        "--host", "localhost",
+        "--port", "5432",
+        "--user", "vastbase",
+        "--password", "your_password",
+        "--database", "postgres"
+      ]
+    }
+  }
+}
+```
+
+**说明**：
+- Vastbase 是海量数据公司的国产数据库
+- 基于 PostgreSQL 开发，兼容 PostgreSQL 协议
+- 默认端口为 5432
+- 使用与 PostgreSQL 相同的驱动（pg）
+
 ### 启动使用
 
 1. 重启 Claude Desktop
@@ -308,6 +335,7 @@ Claude 会自动调用数据库工具完成查询！
 | TiDB | `--type tidb` | 4000 | ✅ 已支持 | PingCAP 分布式数据库，兼容 MySQL 5.7 |
 | ClickHouse | `--type clickhouse` | 8123 | ✅ 已支持 | 高性能列式 OLAP 数据库 |
 | PolarDB | `--type polardb` | 3306 | ✅ 已支持 | 阿里云云原生数据库，兼容 MySQL |
+| Vastbase | `--type vastbase` | 5432 | ✅ 已支持 | 海量数据国产数据库，兼容 PostgreSQL |
 
 **注意**:
 - 达梦数据库驱动 `dmdb` 会作为可选依赖自动安装。如果安装失败，请手动运行 `npm install -g dmdb`。
@@ -319,7 +347,7 @@ Claude 会自动调用数据库工具完成查询！
 universal-db-mcp [选项]
 
 选项：
-  --type <db>              数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase|gaussdb|opengauss|oceanbase|tidb|clickhouse|polardb)
+  --type <db>              数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase|gaussdb|opengauss|oceanbase|tidb|clickhouse|polardb|vastbase)
   --host <host>            数据库主机地址 (默认: localhost)
   --port <port>            数据库端口
   --user <user>            用户名
@@ -350,7 +378,8 @@ src/
 │   ├── oceanbase.ts
 │   ├── tidb.ts
 │   ├── clickhouse.ts
-│   └── polardb.ts
+│   ├── polardb.ts
+│   └── vastbase.ts
 ├── types/             # TypeScript 类型定义
 │   └── adapter.ts
 ├── utils/             # 工具函数
