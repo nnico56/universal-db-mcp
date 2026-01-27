@@ -52,12 +52,18 @@
 - **Redis** (`src/adapters/redis.ts`) - NoSQL 数据库的适配
 - **Oracle** (`src/adapters/oracle.ts`) - 企业级数据库的完整实现
 - **达梦** (`src/adapters/dm.ts`) - 国产数据库适配，兼容 Oracle
+- **SQL Server** (`src/adapters/sqlserver.ts`) - 微软数据库，支持 Azure SQL
+- **MongoDB** (`src/adapters/mongodb.ts`) - 文档型 NoSQL 数据库
+- **SQLite** (`src/adapters/sqlite.ts`) - 轻量级嵌入式数据库
+- **KingbaseES** (`src/adapters/kingbase.ts`) - 国产数据库，兼容 PostgreSQL
+- **GaussDB** (`src/adapters/gaussdb.ts`) - 华为国产数据库，兼容 PostgreSQL
 - **OceanBase** (`src/adapters/oceanbase.ts`) - 分布式数据库，兼容 MySQL
 - **TiDB** (`src/adapters/tidb.ts`) - 分布式 NewSQL 数据库，兼容 MySQL 5.7
 - **ClickHouse** (`src/adapters/clickhouse.ts`) - 列式 OLAP 数据库，使用 HTTP 协议
 - **PolarDB** (`src/adapters/polardb.ts`) - 云原生数据库，兼容 MySQL
 - **Vastbase** (`src/adapters/vastbase.ts`) - 国产数据库，兼容 PostgreSQL
 - **HighGo** (`src/adapters/highgo.ts`) - 国产数据库，兼容 PostgreSQL
+- **GoldenDB** (`src/adapters/goldendb.ts`) - 国产分布式数据库，兼容 MySQL
 
 ### 示例结构
 

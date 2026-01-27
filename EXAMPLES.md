@@ -20,6 +20,7 @@
 - [PolarDB 使用示例](#polardb-使用示例)
 - [Vastbase 使用示例](#vastbase-使用示例)
 - [HighGo 使用示例](#highgo-使用示例)
+- [GoldenDB 使用示例](#goldendb-使用示例)
 - [Claude Desktop 配置示例](#claude-desktop-配置示例)
 - [常见使用场景](#常见使用场景)
 
@@ -2327,6 +2328,215 @@ HighGo 作为国产数据库，有一些特色功能：
    - 监控数据库性能指标
    - 定期执行 VACUUM
    - 更新统计信息
+   - 定期备份数据
+
+5. **安全建议**:
+   - 使用强密码
+   - 限制网络访问
+   - 启用 SSL 连接
+   - 定期审计日志
+
+---
+
+## GoldenDB 使用示例
+
+### 基础配置（只读模式）
+
+```json
+{
+  "mcpServers": {
+    "goldendb-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "goldendb",
+        "--host", "localhost",
+        "--port", "3306",
+        "--user", "root",
+        "--password", "your_password",
+        "--database", "test"
+      ]
+    }
+  }
+}
+```
+
+### 启用写入模式
+
+```json
+{
+  "mcpServers": {
+    "goldendb-write": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "goldendb",
+        "--host", "localhost",
+        "--port", "3306",
+        "--user", "root",
+        "--password", "your_password",
+        "--database", "mydb",
+        "--danger-allow-write"
+      ]
+    }
+  }
+}
+```
+
+### 连接 GoldenDB 分布式集群
+
+```json
+{
+  "mcpServers": {
+    "goldendb-cluster": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "goldendb",
+        "--host", "goldendb-cluster.example.com",
+        "--port", "3306",
+        "--user", "your_username",
+        "--password", "your_password",
+        "--database", "production"
+      ]
+    }
+  }
+}
+```
+
+### 与 Claude 对话示例
+
+**用户**: 查看数据库中有哪些表？
+
+**Claude 会自动**:
+1. 调用 `get_schema` 工具
+2. 执行 `SHOW TABLES` 查询
+3. 返回表列表
+
+**用户**: 查看 transactions 表的结构
+
+**Claude 会自动**:
+1. 调用 `get_table_info` 工具
+2. 执行 `SHOW FULL COLUMNS FROM transactions`
+3. 返回列信息、主键、索引等详细信息
+
+**用户**: 统计每个用户的交易总额
+
+**Claude 会自动**:
+1. 理解需求
+2. 生成 SQL: `SELECT user_id, SUM(amount) as total_amount FROM transactions GROUP BY user_id ORDER BY total_amount DESC`
+3. 执行并返回结果
+
+**用户**: 查找最近 24 小时的大额交易（金额超过 10000）
+
+**Claude 会自动**:
+1. 生成 SQL: `SELECT * FROM transactions WHERE amount > 10000 AND created_at >= DATE_SUB(NOW(), INTERVAL 24 HOUR) ORDER BY amount DESC`
+2. 执行并返回结果
+
+### 注意事项
+
+1. **默认端口**: 3306（与 MySQL 相同）
+2. **兼容性**: 完全兼容 MySQL 5.7/8.0 协议
+3. **驱动**: 使用 MySQL 的 `mysql2` 驱动
+4. **国产数据库**: 中兴通讯开发，支持国产化替代
+5. **分布式特性**:
+   - 支持分布式事务
+   - 支持水平扩展
+   - 支持高可用集群
+   - 支持读写分离
+
+### 支持的版本
+
+- ✅ GoldenDB 2.x
+- ✅ GoldenDB 3.x
+- ✅ 其他兼容 MySQL 的版本
+
+### 常见使用场景
+
+#### 1. 电信行业应用
+
+GoldenDB 在电信行业有广泛应用：
+
+```
+用户: 查询用户通话记录
+
+Claude 会:
+1. 查询通话记录表
+2. 按用户分组统计
+3. 返回分析结果
+```
+
+#### 2. 金融交易系统
+
+```
+用户: 查询今日交易流水
+
+Claude 会:
+1. 查询交易表
+2. 过滤今日数据
+3. 返回交易明细
+```
+
+#### 3. 分布式场景
+
+```
+用户: 查询分布式表的数据
+
+Claude 会:
+1. 连接到 GoldenDB 集群
+2. 执行分布式查询
+3. 自动聚合结果
+```
+
+#### 4. 高并发场景
+
+```
+用户: 查询实时订单数据
+
+Claude 会:
+1. 利用 GoldenDB 的高并发能力
+2. 快速返回查询结果
+3. 保证数据一致性
+```
+
+### GoldenDB 特色功能
+
+GoldenDB 作为国产分布式数据库，有一些特色功能：
+
+- **MySQL 兼容**: 完全兼容 MySQL 5.7/8.0 协议和语法
+- **分布式架构**: 支持分布式事务和水平扩展
+- **高可用**: 支持主备切换和故障转移
+- **读写分离**: 支持读写分离架构
+- **弹性扩展**: 支持在线扩容和缩容
+- **国产化**: 支持国产操作系统和芯片
+- **电信级**: 满足电信级可靠性要求
+
+**注意**: 这些特色功能可能需要特定的配置或 SQL 语法，Claude 会根据标准 MySQL 语法生成查询。
+
+### GoldenDB 最佳实践
+
+1. **表设计**:
+   - 使用合适的分片键
+   - 合理设计主键和索引
+   - 考虑数据分布均衡
+   - 避免跨分片查询
+
+2. **查询优化**:
+   - 使用 EXPLAIN 分析查询计划
+   - 创建合适的索引
+   - 避免 SELECT *
+   - 使用 LIMIT 限制返回结果
+
+3. **分布式事务**:
+   - 合理使用分布式事务
+   - 避免长事务
+   - 注意事务隔离级别
+   - 处理分布式死锁
+
+4. **监控维护**:
+   - 监控集群状态
+   - 关注分片数据分布
+   - 定期检查慢查询
    - 定期备份数据
 
 5. **安全建议**:

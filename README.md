@@ -33,7 +33,7 @@
 
 - Node.js >= 20
 - Claude Desktop 应用
-- 至少一个数据库实例（MySQL/PostgreSQL/Redis/Oracle/达梦/SQL Server/MongoDB/SQLite/KingbaseES/GaussDB/OceanBase/TiDB/ClickHouse/PolarDB/Vastbase/HighGo）
+- 至少一个数据库实例（MySQL/PostgreSQL/Redis/Oracle/达梦/SQL Server/MongoDB/SQLite/KingbaseES/GaussDB/OceanBase/TiDB/ClickHouse/PolarDB/Vastbase/HighGo/GoldenDB）
 
 ### 安装
 
@@ -56,12 +56,12 @@ npx universal-db-mcp
 
 添加以下配置：
 
-#### MySQL 示例
+#### 1. MySQL 示例
 
 ```json
 {
   "mcpServers": {
-    "universal-db": {
+    "mysql-db": {
       "command": "npx",
       "args": [
         "universal-db-mcp",
@@ -77,7 +77,152 @@ npx universal-db-mcp
 }
 ```
 
-#### SQLite 示例
+#### 2. PostgreSQL 示例
+
+```json
+{
+  "mcpServers": {
+    "postgres-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "postgres",
+        "--host", "localhost",
+        "--port", "5432",
+        "--user", "postgres",
+        "--password", "your_password",
+        "--database", "your_database"
+      ]
+    }
+  }
+}
+```
+
+#### 3. Redis 示例
+
+```json
+{
+  "mcpServers": {
+    "redis-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "redis",
+        "--host", "localhost",
+        "--port", "6379",
+        "--password", "your_password"
+      ]
+    }
+  }
+}
+```
+
+**注意**：Redis 不需要 `--database` 参数，可以通过 `--database` 指定数据库编号（0-15）。
+
+#### 4. Oracle 示例
+
+```json
+{
+  "mcpServers": {
+    "oracle-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "oracle",
+        "--host", "localhost",
+        "--port", "1521",
+        "--user", "system",
+        "--password", "your_password",
+        "--database", "ORCL"
+      ]
+    }
+  }
+}
+```
+
+**说明**：
+- Oracle 12c 及以上版本
+- 默认端口为 1521
+- `--database` 参数为服务名（Service Name）
+
+#### 5. 达梦（DM）示例
+
+```json
+{
+  "mcpServers": {
+    "dm-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "dm",
+        "--host", "localhost",
+        "--port", "5236",
+        "--user", "SYSDBA",
+        "--password", "your_password",
+        "--database", "DAMENG"
+      ]
+    }
+  }
+}
+```
+
+**说明**：
+- 达梦数据库 DM7/DM8
+- 默认端口为 5236
+- 驱动会自动安装
+
+#### 6. SQL Server 示例
+
+```json
+{
+  "mcpServers": {
+    "sqlserver-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "sqlserver",
+        "--host", "localhost",
+        "--port", "1433",
+        "--user", "sa",
+        "--password", "your_password",
+        "--database", "master"
+      ]
+    }
+  }
+}
+```
+
+**说明**：
+- 支持 SQL Server 2012 及以上版本
+- 支持 Azure SQL Database
+- 默认端口为 1433
+
+#### 7. MongoDB 示例
+
+```json
+{
+  "mcpServers": {
+    "mongodb-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "mongodb",
+        "--host", "localhost",
+        "--port", "27017",
+        "--user", "admin",
+        "--password", "your_password",
+        "--database", "test"
+      ]
+    }
+  }
+}
+```
+
+**说明**：
+- 支持 MongoDB 4.0 及以上版本
+- 默认端口为 27017
+
+#### 8. SQLite 示例
 
 ```json
 {
@@ -100,7 +245,7 @@ npx universal-db-mcp
 - Windows 路径示例：`"C:\\Users\\YourName\\data\\mydb.db"`
 - macOS/Linux 路径示例：`"/Users/YourName/data/mydb.db"`
 
-#### KingbaseES 示例
+#### 9. KingbaseES 示例
 
 ```json
 {
@@ -126,7 +271,7 @@ npx universal-db-mcp
 - 默认端口为 54321
 - 使用与 PostgreSQL 相同的驱动（pg）
 
-#### GaussDB / OpenGauss 示例
+#### 10. GaussDB / OpenGauss 示例
 
 ```json
 {
@@ -153,7 +298,7 @@ npx universal-db-mcp
 - 可以使用 `--type gaussdb` 或 `--type opengauss`
 - 使用与 PostgreSQL 相同的驱动（pg）
 
-#### OceanBase 示例
+#### 11. OceanBase 示例
 
 ```json
 {
@@ -180,7 +325,7 @@ npx universal-db-mcp
 - 用户名格式：`用户名@租户名`（如 `root@test`）
 - 使用与 MySQL 相同的驱动（mysql2）
 
-#### TiDB 示例
+#### 12. TiDB 示例
 
 ```json
 {
@@ -207,7 +352,7 @@ npx universal-db-mcp
 - 支持分布式事务和水平扩展
 - 使用与 MySQL 相同的驱动（mysql2）
 
-#### ClickHouse 示例
+#### 13. ClickHouse 示例
 
 ```json
 {
@@ -234,7 +379,7 @@ npx universal-db-mcp
 - 默认用户为 default，默认数据库为 default
 - 适合大数据分析和实时查询场景
 
-#### PolarDB 示例
+#### 14. PolarDB 示例
 
 ```json
 {
@@ -261,7 +406,7 @@ npx universal-db-mcp
 - 支持一写多读架构，读写分离
 - 使用与 MySQL 相同的驱动（mysql2）
 
-#### Vastbase 示例
+#### 15. Vastbase 示例
 
 ```json
 {
@@ -288,7 +433,7 @@ npx universal-db-mcp
 - 默认端口为 5432
 - 使用与 PostgreSQL 相同的驱动（pg）
 
-#### HighGo 示例
+#### 16. HighGo 示例
 
 ```json
 {
@@ -314,6 +459,146 @@ npx universal-db-mcp
 - 基于 PostgreSQL 开发，兼容 PostgreSQL 协议
 - 默认端口为 5866
 - 使用与 PostgreSQL 相同的驱动（pg）
+
+#### 17. GoldenDB 示例
+
+```json
+{
+  "mcpServers": {
+    "goldendb-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "goldendb",
+        "--host", "localhost",
+        "--port", "3306",
+        "--user", "root",
+        "--password", "your_password",
+        "--database", "test"
+      ]
+    }
+  }
+}
+```
+
+**说明**：
+- GoldenDB 是中兴通讯的国产分布式数据库
+- 完全兼容 MySQL 5.7/8.0 协议
+- 默认端口为 3306
+- 使用与 MySQL 相同的驱动（mysql2）
+- 支持分布式事务和水平扩展
+
+### 配置 Cherry Studio
+
+Cherry Studio 也支持 MCP 协议。在 Cherry Studio 中配置 MCP 主要是配置命令。
+
+以下是所有 17 个数据库的 Cherry Studio 配置命令：
+
+#### 1. MySQL
+
+```bash
+npx universal-db-mcp@latest --type mysql --host localhost --port 3306 --user root --password your_password --database your_database
+```
+
+#### 2. PostgreSQL
+
+```bash
+npx universal-db-mcp@latest --type postgres --host localhost --port 5432 --user postgres --password your_password --database your_database
+```
+
+#### 3. Redis
+
+```bash
+npx universal-db-mcp@latest --type redis --host localhost --port 6379 --password your_password
+```
+
+#### 4. Oracle
+
+```bash
+npx universal-db-mcp@latest --type oracle --host localhost --port 1521 --user system --password your_password --database ORCL
+```
+
+#### 5. 达梦（DM）
+
+```bash
+npx universal-db-mcp@latest --type dm --host localhost --port 5236 --user SYSDBA --password your_password --database DAMENG
+```
+
+#### 6. SQL Server
+
+```bash
+npx universal-db-mcp@latest --type sqlserver --host localhost --port 1433 --user sa --password your_password --database master
+```
+
+#### 7. MongoDB
+
+```bash
+npx universal-db-mcp@latest --type mongodb --host localhost --port 27017 --user admin --password your_password --database test
+```
+
+#### 8. SQLite
+
+```bash
+npx universal-db-mcp@latest --type sqlite --file /path/to/your/database.db
+```
+
+#### 9. KingbaseES
+
+```bash
+npx universal-db-mcp@latest --type kingbase --host localhost --port 54321 --user system --password your_password --database test
+```
+
+#### 10. GaussDB / OpenGauss
+
+```bash
+npx universal-db-mcp@latest --type gaussdb --host localhost --port 5432 --user gaussdb --password your_password --database postgres
+```
+
+#### 11. OceanBase
+
+```bash
+npx universal-db-mcp@latest --type oceanbase --host localhost --port 2881 --user root@test --password your_password --database test
+```
+
+#### 12. TiDB
+
+```bash
+npx universal-db-mcp@latest --type tidb --host localhost --port 4000 --user root --password your_password --database test
+```
+
+#### 13. ClickHouse
+
+```bash
+npx universal-db-mcp@latest --type clickhouse --host localhost --port 8123 --user default --password "" --database default
+```
+
+#### 14. PolarDB
+
+```bash
+npx universal-db-mcp@latest --type polardb --host pc-xxxxx.mysql.polardb.rds.aliyuncs.com --port 3306 --user your_username --password your_password --database your_database
+```
+
+#### 15. Vastbase
+
+```bash
+npx universal-db-mcp@latest --type vastbase --host localhost --port 5432 --user vastbase --password your_password --database postgres
+```
+
+#### 16. HighGo
+
+```bash
+npx universal-db-mcp@latest --type highgo --host localhost --port 5866 --user highgo --password your_password --database highgo
+```
+
+#### 17. GoldenDB
+
+```bash
+npx universal-db-mcp@latest --type goldendb --host localhost --port 3306 --user root --password your_password --database test
+```
+
+**注意**：
+- 将命令中的参数替换为你的实际数据库连接信息
+- 如需启用写入模式，在命令前添加 `--danger-allow-write` 参数
 
 ### 启动使用
 
@@ -376,7 +661,7 @@ Claude 会自动调用数据库工具完成查询！
 universal-db-mcp [选项]
 
 选项：
-  --type <db>              数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase|gaussdb|opengauss|oceanbase|tidb|clickhouse|polardb|vastbase|highgo)
+  --type <db>              数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase|gaussdb|opengauss|oceanbase|tidb|clickhouse|polardb|vastbase|highgo|goldendb)
   --host <host>            数据库主机地址 (默认: localhost)
   --port <port>            数据库端口
   --user <user>            用户名
@@ -409,7 +694,8 @@ src/
 │   ├── clickhouse.ts
 │   ├── polardb.ts
 │   ├── vastbase.ts
-│   └── highgo.ts
+│   ├── highgo.ts
+│   └── goldendb.ts
 ├── types/             # TypeScript 类型定义
 │   └── adapter.ts
 ├── utils/             # 工具函数
