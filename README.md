@@ -19,7 +19,7 @@
 
 ✅ **智能表结构理解** - 自动获取数据库 Schema，提供精准建议
 
-✅ **多数据库支持** - MySQL、PostgreSQL、Redis、Oracle、达梦、SQL Server、MongoDB、SQLite、KingbaseES、GaussDB/OpenGauss、OceanBase、TiDB、ClickHouse 一键切换
+✅ **多数据库支持** - MySQL、PostgreSQL、Redis、Oracle、达梦、SQL Server、MongoDB、SQLite、KingbaseES、GaussDB/OpenGauss、OceanBase、TiDB、ClickHouse、PolarDB 一键切换
 
 ✅ **安全第一** - 默认只读模式，防止误操作删库
 
@@ -33,7 +33,7 @@
 
 - Node.js >= 20
 - Claude Desktop 应用
-- 至少一个数据库实例（MySQL/PostgreSQL/Redis/Oracle/达梦/SQL Server/MongoDB/SQLite/KingbaseES/GaussDB/OceanBase/TiDB/ClickHouse）
+- 至少一个数据库实例（MySQL/PostgreSQL/Redis/Oracle/达梦/SQL Server/MongoDB/SQLite/KingbaseES/GaussDB/OceanBase/TiDB/ClickHouse/PolarDB）
 
 ### 安装
 
@@ -234,6 +234,33 @@ npx universal-db-mcp
 - 默认用户为 default，默认数据库为 default
 - 适合大数据分析和实时查询场景
 
+#### PolarDB 示例
+
+```json
+{
+  "mcpServers": {
+    "polardb-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "polardb",
+        "--host", "pc-xxxxx.mysql.polardb.rds.aliyuncs.com",
+        "--port", "3306",
+        "--user", "your_username",
+        "--password", "your_password",
+        "--database", "your_database"
+      ]
+    }
+  }
+}
+```
+
+**说明**：
+- PolarDB 是阿里云的云原生数据库
+- 完全兼容 MySQL 5.6/5.7/8.0 协议
+- 支持一写多读架构，读写分离
+- 使用与 MySQL 相同的驱动（mysql2）
+
 ### 启动使用
 
 1. 重启 Claude Desktop
@@ -280,6 +307,7 @@ Claude 会自动调用数据库工具完成查询！
 | OceanBase | `--type oceanbase` | 2881 | ✅ 已支持 | 蚂蚁金服分布式数据库，兼容 MySQL |
 | TiDB | `--type tidb` | 4000 | ✅ 已支持 | PingCAP 分布式数据库，兼容 MySQL 5.7 |
 | ClickHouse | `--type clickhouse` | 8123 | ✅ 已支持 | 高性能列式 OLAP 数据库 |
+| PolarDB | `--type polardb` | 3306 | ✅ 已支持 | 阿里云云原生数据库，兼容 MySQL |
 
 **注意**:
 - 达梦数据库驱动 `dmdb` 会作为可选依赖自动安装。如果安装失败，请手动运行 `npm install -g dmdb`。
@@ -291,7 +319,7 @@ Claude 会自动调用数据库工具完成查询！
 universal-db-mcp [选项]
 
 选项：
-  --type <db>              数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase|gaussdb|opengauss|oceanbase|tidb|clickhouse)
+  --type <db>              数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase|gaussdb|opengauss|oceanbase|tidb|clickhouse|polardb)
   --host <host>            数据库主机地址 (默认: localhost)
   --port <port>            数据库端口
   --user <user>            用户名
@@ -321,7 +349,8 @@ src/
 │   ├── gaussdb.ts
 │   ├── oceanbase.ts
 │   ├── tidb.ts
-│   └── clickhouse.ts
+│   ├── clickhouse.ts
+│   └── polardb.ts
 ├── types/             # TypeScript 类型定义
 │   └── adapter.ts
 ├── utils/             # 工具函数

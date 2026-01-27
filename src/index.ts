@@ -20,6 +20,7 @@ import { GaussDBAdapter } from './adapters/gaussdb.js';
 import { OceanBaseAdapter } from './adapters/oceanbase.js';
 import { TiDBAdapter } from './adapters/tidb.js';
 import { ClickHouseAdapter } from './adapters/clickhouse.js';
+import { PolarDBAdapter } from './adapters/polardb.js';
 
 const program = new Command();
 
@@ -27,7 +28,7 @@ program
   .name('universal-db-mcp')
   .description('MCP 数据库万能连接器 - 让 Claude Desktop 直接连接你的数据库')
   .version('0.1.0')
-  .requiredOption('--type <type>', '数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase|gaussdb|opengauss|oceanbase|tidb|clickhouse)')
+  .requiredOption('--type <type>', '数据库类型 (mysql|postgres|redis|oracle|dm|sqlserver|mssql|mongodb|sqlite|kingbase|gaussdb|opengauss|oceanbase|tidb|clickhouse|polardb)')
   .option('--host <host>', '数据库主机地址')
   .option('--port <port>', '数据库端口', parseInt)
   .option('--user <user>', '用户名')
@@ -39,8 +40,8 @@ program
   .action(async (options) => {
     try {
       // 验证数据库类型
-      if (!['mysql', 'postgres', 'redis', 'oracle', 'dm', 'sqlserver', 'mssql', 'mongodb', 'sqlite', 'kingbase', 'gaussdb', 'opengauss', 'oceanbase', 'tidb', 'clickhouse'].includes(options.type)) {
-        console.error('❌ 错误: 不支持的数据库类型。支持的类型: mysql, postgres, redis, oracle, dm, sqlserver (或 mssql), mongodb, sqlite, kingbase, gaussdb (或 opengauss), oceanbase, tidb, clickhouse');
+      if (!['mysql', 'postgres', 'redis', 'oracle', 'dm', 'sqlserver', 'mssql', 'mongodb', 'sqlite', 'kingbase', 'gaussdb', 'opengauss', 'oceanbase', 'tidb', 'clickhouse', 'polardb'].includes(options.type)) {
+        console.error('❌ 错误: 不支持的数据库类型。支持的类型: mysql, postgres, redis, oracle, dm, sqlserver (或 mssql), mongodb, sqlite, kingbase, gaussdb (或 opengauss), oceanbase, tidb, clickhouse, polardb');
         process.exit(1);
       }
 
@@ -69,7 +70,7 @@ program
 
       // 构建配置
       const config: DbConfig = {
-        type: dbType as 'mysql' | 'postgres' | 'redis' | 'oracle' | 'dm' | 'sqlserver' | 'mongodb' | 'sqlite' | 'kingbase' | 'gaussdb' | 'oceanbase' | 'tidb' | 'clickhouse',
+        type: dbType as 'mysql' | 'postgres' | 'redis' | 'oracle' | 'dm' | 'sqlserver' | 'mongodb' | 'sqlite' | 'kingbase' | 'gaussdb' | 'oceanbase' | 'tidb' | 'clickhouse' | 'polardb',
         host: options.host,
         port: options.port,
         user: options.user,
@@ -216,6 +217,16 @@ program
 
         case 'clickhouse':
           adapter = new ClickHouseAdapter({
+            host: config.host!,
+            port: config.port!,
+            user: config.user,
+            password: config.password,
+            database: config.database,
+          });
+          break;
+
+        case 'polardb':
+          adapter = new PolarDBAdapter({
             host: config.host!,
             port: config.port!,
             user: config.user,

@@ -17,6 +17,7 @@
 - [OceanBase 使用示例](#oceanbase-使用示例)
 - [TiDB 使用示例](#tidb-使用示例)
 - [ClickHouse 使用示例](#clickhouse-使用示例)
+- [PolarDB 使用示例](#polardb-使用示例)
 - [Claude Desktop 配置示例](#claude-desktop-配置示例)
 - [常见使用场景](#常见使用场景)
 
@@ -1691,6 +1692,229 @@ ClickHouse 作为列式 OLAP 数据库，有许多特色功能：
    - 使用 PREWHERE 过滤数据
    - 避免 SELECT *
    - 合理使用物化视图
+
+---
+
+## PolarDB 使用示例
+
+### 基础配置（只读模式）
+
+```json
+{
+  "mcpServers": {
+    "polardb-db": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "polardb",
+        "--host", "pc-xxxxx.mysql.polardb.rds.aliyuncs.com",
+        "--port", "3306",
+        "--user", "your_username",
+        "--password", "your_password",
+        "--database", "your_database"
+      ]
+    }
+  }
+}
+```
+
+### 启用写入模式
+
+```json
+{
+  "mcpServers": {
+    "polardb-write": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "polardb",
+        "--host", "pc-xxxxx.mysql.polardb.rds.aliyuncs.com",
+        "--port", "3306",
+        "--user", "your_username",
+        "--password", "your_password",
+        "--database", "your_database",
+        "--danger-allow-write"
+      ]
+    }
+  }
+}
+```
+
+### 连接 PolarDB 集群（读写分离）
+
+```json
+{
+  "mcpServers": {
+    "polardb-primary": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "polardb",
+        "--host", "pc-xxxxx.mysql.polardb.rds.aliyuncs.com",
+        "--port", "3306",
+        "--user", "your_username",
+        "--password", "your_password",
+        "--database", "your_database",
+        "--danger-allow-write"
+      ]
+    },
+    "polardb-readonly": {
+      "command": "npx",
+      "args": [
+        "universal-db-mcp",
+        "--type", "polardb",
+        "--host", "pc-xxxxx-ro.mysql.polardb.rds.aliyuncs.com",
+        "--port", "3306",
+        "--user", "readonly_user",
+        "--password", "readonly_password",
+        "--database", "your_database"
+      ]
+    }
+  }
+}
+```
+
+### 与 Claude 对话示例
+
+**用户**: 查看数据库中有哪些表？
+
+**Claude 会自动**:
+1. 调用 `get_schema` 工具
+2. 执行 `SHOW TABLES` 查询
+3. 返回表列表
+
+**用户**: 查看 orders 表的结构
+
+**Claude 会自动**:
+1. 调用 `get_table_info` 工具
+2. 执行 `SHOW FULL COLUMNS FROM orders`
+3. 返回列信息、主键、索引等详细信息
+
+**用户**: 统计最近 7 天的订单数量
+
+**Claude 会自动**:
+1. 理解需求
+2. 生成 SQL: `SELECT COUNT(*) FROM orders WHERE created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)`
+3. 执行并返回结果
+
+**用户**: 查询销售额最高的 10 个商品
+
+**Claude 会自动**:
+1. 生成 SQL: `SELECT product_id, SUM(amount) as total_sales FROM orders GROUP BY product_id ORDER BY total_sales DESC LIMIT 10`
+2. 执行并返回结果
+
+### 注意事项
+
+1. **默认端口**: 3306（与 MySQL 相同）
+2. **兼容性**: 完全兼容 MySQL 5.6/5.7/8.0 协议
+3. **驱动**: 使用 MySQL 的 `mysql2` 驱动
+4. **读写分离**:
+   - 主地址（Primary Endpoint）：支持读写
+   - 集群地址（Cluster Endpoint）：自动读写分离
+   - 只读地址（Read-only Endpoint）：只支持读
+5. **云原生特性**:
+   - 存储与计算分离
+   - 秒级弹性扩展
+   - 多可用区部署
+
+### 支持的版本
+
+- ✅ PolarDB for MySQL 5.6
+- ✅ PolarDB for MySQL 5.7
+- ✅ PolarDB for MySQL 8.0
+- ✅ PolarDB Serverless
+
+### 常见使用场景
+
+#### 1. 云原生应用数据库
+
+连接 PolarDB 作为云原生应用的主数据库：
+
+```
+用户: 查询用户表中的所有活跃用户
+
+Claude 会:
+1. 查询用户表
+2. 过滤活跃用户
+3. 返回结果
+```
+
+#### 2. 读写分离场景
+
+```
+用户: 使用只读节点查询大量数据进行分析
+
+Claude 会:
+1. 连接到只读地址
+2. 执行复杂的分析查询
+3. 不影响主库性能
+```
+
+#### 3. 高并发场景
+
+```
+用户: 查询实时订单数据
+
+Claude 会:
+1. 利用 PolarDB 的高并发能力
+2. 快速返回查询结果
+3. 保证数据一致性
+```
+
+#### 4. 弹性扩展
+
+```
+用户: 在业务高峰期查询数据
+
+Claude 会:
+1. PolarDB 自动扩展计算资源
+2. 保证查询性能
+3. 业务低峰期自动缩容
+```
+
+### PolarDB 特色功能
+
+PolarDB 作为云原生数据库，有许多特色功能：
+
+- **存储计算分离**: 存储和计算资源独立扩展
+- **一写多读**: 支持一个主节点和多个只读节点
+- **秒级弹性**: 计算节点秒级扩展
+- **全局一致性**: 分布式事务保证数据一致性
+- **并行查询**: 支持并行查询加速
+- **热备份**: 在线备份不影响业务
+- **多可用区**: 支持多可用区部署，高可用
+
+**注意**: 这些特色功能在标准 MySQL 协议下可能需要特定的配置或 SQL 语法。
+
+### PolarDB 最佳实践
+
+1. **读写分离**:
+   - 写操作使用主地址
+   - 读操作使用只读地址或集群地址
+   - 分析查询使用只读节点
+
+2. **连接池管理**:
+   - 合理设置连接池大小
+   - 使用长连接减少连接开销
+   - 定期检查连接健康状态
+
+3. **查询优化**:
+   - 使用合适的索引
+   - 避免全表扫描
+   - 合理使用 LIMIT
+   - 利用查询缓存
+
+4. **监控告警**:
+   - 监控 CPU、内存、IOPS
+   - 设置慢查询告警
+   - 关注连接数使用情况
+   - 定期查看性能洞察
+
+5. **安全建议**:
+   - 使用 SSL 连接
+   - 设置白名单
+   - 定期更换密码
+   - 使用 RAM 账号管理权限
 
 ---
 
