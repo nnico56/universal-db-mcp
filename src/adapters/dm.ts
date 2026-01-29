@@ -122,8 +122,14 @@ export class DMAdapter implements DbAdapter {
     const startTime = Date.now();
 
     try {
+      // 达梦兼容 Oracle，不需要末尾的分号，移除它以避免语法错误
+      let cleanQuery = query.trim();
+      if (cleanQuery.endsWith(';')) {
+        cleanQuery = cleanQuery.slice(0, -1).trim();
+      }
+
       // 执行查询
-      const result = await this.connection.execute(query, params || [], {
+      const result = await this.connection.execute(cleanQuery, params || [], {
         autoCommit: false,
       });
 

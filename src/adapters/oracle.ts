@@ -121,8 +121,14 @@ export class OracleAdapter implements DbAdapter {
     const startTime = Date.now();
 
     try {
+      // Oracle 不需要末尾的分号，移除它以避免 ORA-00933 错误
+      let cleanQuery = query.trim();
+      if (cleanQuery.endsWith(';')) {
+        cleanQuery = cleanQuery.slice(0, -1).trim();
+      }
+
       // 执行查询，autoCommit 设置为 false（只读安全）
-      const result = await this.connection.execute(query, params || [], {
+      const result = await this.connection.execute(cleanQuery, params || [], {
         autoCommit: false,
         outFormat: oracledb.OUT_FORMAT_OBJECT,
       });
