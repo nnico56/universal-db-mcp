@@ -19,12 +19,20 @@ export async function authMiddleware(
     return;
   }
 
-  // Get API key from header
+  // Get API key from header (supports both X-API-Key and Authorization Bearer)
   const apiKey =
     request.headers['x-api-key'] ||
     (request.headers.authorization?.startsWith('Bearer ')
       ? request.headers.authorization.substring(7)
       : null);
+
+  // Check if API keys are configured
+  const validKeys = config.http?.apiKeys || [];
+
+  // If no API keys configured, skip authentication (development mode)
+  if (validKeys.length === 0) {
+    return;
+  }
 
   if (!apiKey) {
     reply.code(401).send({
@@ -42,8 +50,7 @@ export async function authMiddleware(
   }
 
   // Validate API key
-  const validKeys = config.http?.apiKeys || [];
-  if (validKeys.length > 0 && !validKeys.includes(apiKey as string)) {
+  if (!validKeys.includes(apiKey as string)) {
     reply.code(403).send({
       success: false,
       error: {

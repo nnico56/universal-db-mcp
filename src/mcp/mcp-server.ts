@@ -11,6 +11,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import type { DbAdapter, DbConfig } from '../types/adapter.js';
 import { DatabaseService, SchemaCacheConfig } from '../core/database-service.js';
 
@@ -234,11 +235,18 @@ export class DatabaseMCPServer {
   }
 
   /**
-   * 启动服务器
+   * 获取 MCP Server 实例（用于 SSE/HTTP 传输）
    */
-  async start(): Promise<void> {
+  getServer(): Server {
+    return this.server;
+  }
+
+  /**
+   * 连接数据库（不启动传输层）
+   */
+  async connectDatabase(): Promise<void> {
     if (!this.adapter) {
-      throw new Error('必须先设置数据库适配器才能启动服务器');
+      throw new Error('必须先设置数据库适配器才能连接数据库');
     }
 
     // 连接数据库
@@ -255,8 +263,22 @@ export class DatabaseMCPServer {
 
     // 显示缓存配置
     console.error('📦 Schema 缓存已启用 (默认 TTL: 5 分钟)');
+  }
 
-    // 启动 MCP 服务器
+  /**
+   * 使用指定的传输层连接 MCP 服务器
+   */
+  async connect(transport: Transport): Promise<void> {
+    await this.server.connect(transport);
+  }
+
+  /**
+   * 启动服务器（使用 stdio 传输，用于 Claude Desktop）
+   */
+  async start(): Promise<void> {
+    await this.connectDatabase();
+
+    // 启动 MCP 服务器（stdio 模式）
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
 

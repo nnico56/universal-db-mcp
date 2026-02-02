@@ -6,13 +6,193 @@ This guide shows how to integrate Universal Database MCP Server with Dify AI app
 
 Dify is an LLM application development platform. By integrating Universal Database MCP Server, you can enable your Dify applications to query and analyze database data.
 
+**Two Integration Methods:**
+1. **MCP Protocol (Recommended)** - Use Dify's native MCP tool support via SSE/Streamable HTTP
+2. **Custom API Tool** - Use HTTP REST API as custom tools
+
 ## Prerequisites
 
-- Universal Database MCP Server deployed with HTTP API mode
+- Universal Database MCP Server deployed with HTTP mode
 - Dify account (self-hosted or cloud)
 - Database instance (MySQL, PostgreSQL, etc.)
 
-## Setup Steps
+---
+
+## Method 1: MCP Protocol Integration (Recommended)
+
+This method uses Dify's native MCP tool support, providing a more seamless integration experience.
+
+### Step 1: Deploy HTTP Server
+
+Deploy Universal Database MCP Server in HTTP mode:
+
+```bash
+# Using npm
+export MODE=http
+export HTTP_PORT=3000
+export API_KEYS=your-secret-key  # Optional: Enable API key authentication
+npx universal-db-mcp
+
+# Or using Docker
+docker run -d \
+  --name universal-db-mcp \
+  -p 3000:3000 \
+  -e MODE=http \
+  -e HTTP_PORT=3000 \
+  -e API_KEYS=your-secret-key \
+  universal-db-mcp:latest
+```
+
+> **Note**: If `API_KEYS` is configured, all MCP endpoints require authentication via `X-API-Key` header or `Authorization: Bearer <key>`.
+
+### Step 2: Configure MCP Tool in Dify
+
+1. Login to [Dify](https://dify.ai/)
+2. Go to **Tools** > **MCP Tools**
+3. Click **Add MCP Server**
+4. Configure the MCP server using one of the following methods:
+
+#### Option A: SSE Endpoint (Legacy)
+
+**Server Name**: `Universal DB MCP`
+
+**Server URL**:
+```
+http://your-server:3000/sse?type=mysql&host=db-host&port=3306&user=root&password=your_password&database=your_database
+```
+
+**Headers** (if API_KEYS is configured):
+```
+X-API-Key: your-secret-key
+```
+
+Database configuration is passed via URL parameters.
+
+#### Option B: Streamable HTTP Endpoint (Recommended)
+
+**Server Name**: `Universal DB MCP`
+
+**Server URL**:
+```
+http://your-server:3000/mcp
+```
+
+**Headers**:
+```
+X-API-Key: your-secret-key
+X-DB-Type: mysql
+X-DB-Host: db-host
+X-DB-Port: 3306
+X-DB-User: root
+X-DB-Password: your_password
+X-DB-Database: your_database
+```
+
+Database configuration is passed via HTTP headers.
+
+### Available Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/sse` | GET | Establish SSE connection (legacy) |
+| `/sse/message` | POST | Send message to SSE session |
+| `/mcp` | POST | Streamable HTTP endpoint (recommended) |
+| `/mcp` | GET | SSE stream for Streamable HTTP |
+| `/mcp` | DELETE | Close session |
+
+### Step 3: Use MCP Tools in Application
+
+Once configured, the following MCP tools will be available in your Dify application:
+
+| Tool | Description |
+|------|-------------|
+| `execute_query` | Execute SQL queries |
+| `get_schema` | Get database schema information |
+| `get_table_info` | Get detailed table information |
+| `clear_cache` | Clear schema cache |
+
+### MCP SSE URL Parameters
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `type` | Yes | Database type: mysql, postgres, redis, oracle, dm, sqlserver, mongodb, sqlite, kingbase, gaussdb, oceanbase, tidb, clickhouse, polardb, vastbase, highgo, goldendb |
+| `host` | Yes* | Database host |
+| `port` | No | Database port (uses default if not specified) |
+| `user` | Yes* | Database username |
+| `password` | Yes* | Database password |
+| `database` | Yes* | Database name |
+| `filePath` | Yes* | SQLite file path (for sqlite type) |
+| `allowWrite` | No | Enable write operations (default: false) |
+
+*Required fields depend on database type
+
+### Example SSE URLs
+
+**MySQL:**
+```
+http://localhost:3000/sse?type=mysql&host=localhost&port=3306&user=root&password=secret&database=myapp
+```
+
+**PostgreSQL:**
+```
+http://localhost:3000/sse?type=postgres&host=localhost&port=5432&user=postgres&password=secret&database=myapp
+```
+
+**SQLite:**
+```
+http://localhost:3000/sse?type=sqlite&filePath=/path/to/database.db
+```
+
+**Redis:**
+```
+http://localhost:3000/sse?type=redis&host=localhost&port=6379&password=secret
+```
+
+### Streamable HTTP Headers
+
+| Header | Required | Description |
+|--------|----------|-------------|
+| `X-DB-Type` | Yes | Database type: mysql, postgres, redis, oracle, dm, sqlserver, mongodb, sqlite, kingbase, gaussdb, oceanbase, tidb, clickhouse, polardb, vastbase, highgo, goldendb |
+| `X-DB-Host` | Yes* | Database host |
+| `X-DB-Port` | No | Database port (uses default if not specified) |
+| `X-DB-User` | Yes* | Database username |
+| `X-DB-Password` | Yes* | Database password |
+| `X-DB-Database` | Yes* | Database name |
+| `X-DB-FilePath` | Yes* | SQLite file path (for sqlite type) |
+| `X-DB-Allow-Write` | No | Enable write operations (default: false) |
+| `X-DB-Oracle-Client-Path` | No | Oracle Instant Client path (for Oracle 11g) |
+| `mcp-session-id` | No | Session ID for subsequent requests |
+
+*Required fields depend on database type
+
+### Example Streamable HTTP Requests
+
+**Initialize Connection (MySQL):**
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -H "X-DB-Type: mysql" \
+  -H "X-DB-Host: localhost" \
+  -H "X-DB-Port: 3306" \
+  -H "X-DB-User: root" \
+  -H "X-DB-Password: secret" \
+  -H "X-DB-Database: myapp" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}},"id":1}'
+```
+
+**Subsequent Requests (with session ID):**
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -H "mcp-session-id: your-session-id" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":2}'
+```
+
+---
+
+## Method 2: Custom API Tool Integration
+
+This method uses Dify's custom API tool feature with the REST API endpoints.
 
 ### Step 1: Deploy HTTP API Server
 

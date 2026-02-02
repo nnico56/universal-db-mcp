@@ -33,7 +33,9 @@
       "Bash(curl:*)",
       "Bash(npm install cross-env --save-dev)",
       "Bash(dir:*)",
-      "Bash(copy:*)"
+      "Bash(copy:*)",
+      "WebFetch(domain:en.oceanbase.com)",
+      "WebFetch(domain:docs.dify.ai)"
     ]
   }
 }

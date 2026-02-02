@@ -2,7 +2,7 @@
 
 ## 概述
 
-Universal Database MCP Server HTTP API 提供 RESTful 端点用于数据库操作。此 API 支持 17 种数据库类型，包括会话管理、API Key 认证、速率限制和 CORS 支持等功能。
+Universal Database MCP Server HTTP API 提供 RESTful 端点和 MCP 协议端点用于数据库操作。此 API 支持 17 种数据库类型，包括会话管理、API Key 认证、速率限制和 CORS 支持等功能。
 
 **基础 URL**: `http://localhost:3000`（可通过 `HTTP_PORT` 环境变量配置）
 
@@ -10,7 +10,9 @@ Universal Database MCP Server HTTP API 提供 RESTful 端点用于数据库操�
 
 ## 认证
 
-除 `/api/health` 和 `/api/info` 外，所有端点都需要 API Key 认证。
+除 `/api/health` 和 `/api/info` 外，所有端点（包括 REST API 和 MCP SSE/Streamable HTTP 端点）都需要 API Key 认证。
+
+> **注意**: 如果未配置 `API_KEYS` 环境变量，则跳过认证（开发模式）。
 
 ### 认证方式
 
@@ -89,6 +91,130 @@ RATE_LIMIT_WINDOW=1m  # 1m, 1h, 1d
 ```
 
 ## API 端点
+
+### MCP 协议端点
+
+MCP（Model Context Protocol）端点允许 Dify 等 AI 平台通过 MCP 协议直接连接数据库。
+
+#### SSE 端点（传统方式）
+
+##### GET /sse
+
+建立 SSE 连接，数据库配置通过 URL 参数传递。
+
+**URL 参数**:
+| 参数 | 必填 | 描述 |
+|------|------|------|
+| `type` | 是 | 数据库类型 |
+| `host` | 是* | 数据库主机 |
+| `port` | 否 | 数据库端口 |
+| `user` | 是* | 用户名 |
+| `password` | 是* | 密码 |
+| `database` | 是* | 数据库名称 |
+| `filePath` | 是* | SQLite 文件路径 |
+| `allowWrite` | 否 | 启用写操作（默认: false） |
+
+*必填字段取决于数据库类型
+
+**请求示例**:
+```bash
+curl "http://localhost:3000/sse?type=mysql&host=localhost&port=3306&user=root&password=secret&database=mydb" \
+  -H "X-API-Key: your-secret-key"
+```
+
+##### POST /sse/message
+
+向 SSE 会话发送消息。
+
+**查询参数**:
+- `sessionId` (字符串, 必需): SSE 会话 ID
+
+**请求示例**:
+```bash
+curl -X POST "http://localhost:3000/sse/message?sessionId=your-session-id" \
+  -H "X-API-Key: your-secret-key" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+```
+
+#### Streamable HTTP 端点（MCP 2025 规范，推荐）
+
+##### POST /mcp
+
+MCP Streamable HTTP 端点，数据库配置通过请求头传递。
+
+**请求头参数**:
+| 请求头 | 必填 | 描述 |
+|--------|------|------|
+| `X-API-Key` | 是* | API 密钥（或使用 Authorization Bearer） |
+| `X-DB-Type` | 是 | 数据库类型 |
+| `X-DB-Host` | 是* | 数据库主机 |
+| `X-DB-Port` | 否 | 数据库端口 |
+| `X-DB-User` | 是* | 用户名 |
+| `X-DB-Password` | 是* | 密码 |
+| `X-DB-Database` | 是* | 数据库名称 |
+| `X-DB-FilePath` | 是* | SQLite 文件路径 |
+| `X-DB-Allow-Write` | 否 | 启用写操作（默认: false） |
+| `mcp-session-id` | 否 | 后续请求的会话 ID |
+
+*必填字段取决于数据库类型；如果配置了 API_KEYS 则需要认证
+
+**初始化请求示例**:
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "X-API-Key: your-secret-key" \
+  -H "Content-Type: application/json" \
+  -H "X-DB-Type: mysql" \
+  -H "X-DB-Host: localhost" \
+  -H "X-DB-Port: 3306" \
+  -H "X-DB-User: root" \
+  -H "X-DB-Password: secret" \
+  -H "X-DB-Database: mydb" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}},"id":1}'
+```
+
+**后续请求示例**（使用会话 ID）:
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "X-API-Key: your-secret-key" \
+  -H "Content-Type: application/json" \
+  -H "mcp-session-id: your-session-id" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":2}'
+```
+
+##### GET /mcp
+
+获取 Streamable HTTP 的 SSE 流。
+
+**请求头**:
+- `mcp-session-id` (字符串, 必需): 会话 ID
+- `X-API-Key` (字符串, 必需*): API 密钥
+
+##### DELETE /mcp
+
+关闭 MCP 会话。
+
+**查询参数或请求头**:
+- `sessionId` 或 `mcp-session-id`: 会话 ID
+
+**请求示例**:
+```bash
+curl -X DELETE "http://localhost:3000/mcp?sessionId=your-session-id" \
+  -H "X-API-Key: your-secret-key"
+```
+
+#### MCP 工具
+
+通过 MCP 协议连接后，以下工具可用：
+
+| 工具名 | 描述 |
+|--------|------|
+| `execute_query` | 执行 SQL 查询或数据库命令 |
+| `get_schema` | 获取数据库结构信息 |
+| `get_table_info` | 获取指定表的详细信息 |
+| `clear_cache` | 清除 Schema 缓存 |
+
+### REST API 端点
 
 ### 健康检查和信息
 

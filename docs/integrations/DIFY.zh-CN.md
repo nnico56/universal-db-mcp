@@ -6,13 +6,203 @@
 
 Dify 是一个 LLM 应用开发平台。通过集成 Universal Database MCP Server，您可以让 Dify 应用查询和分析数据库数据。
 
+**两种集成方式：**
+1. **MCP 协议（推荐）** - 使用 Dify 原生 MCP 工具支持，通过 SSE/Streamable HTTP 连接
+2. **自定义 API 工具** - 使用 HTTP REST API 作为自定义工具
+
 ## 前置要求
 
-- 部署了 HTTP API 模式的 Universal Database MCP Server
+- 部署了 HTTP 模式的 Universal Database MCP Server
 - Dify 账号（自托管或云端）
 - 数据库实例（MySQL、PostgreSQL 等）
 
-## 设置步骤
+---
+
+## 方式一：MCP 协议集成（推荐）
+
+此方式使用 Dify 原生的 MCP 工具支持，提供更无缝的集成体验。
+
+### 步骤 1: 部署 HTTP 服务器
+
+以 HTTP 模式部署 Universal Database MCP Server：
+
+```bash
+# 使用 npm
+export MODE=http
+export HTTP_PORT=3000
+export API_KEYS=your-secret-key  # 可选：启用 API Key 认证
+npx universal-db-mcp
+
+# 或使用 Docker
+docker run -d \
+  --name universal-db-mcp \
+  -p 3000:3000 \
+  -e MODE=http \
+  -e HTTP_PORT=3000 \
+  -e API_KEYS=your-secret-key \
+  universal-db-mcp:latest
+```
+
+> **注意**: 如果配置了 `API_KEYS`，所有 MCP 端点都需要通过 `X-API-Key` 请求头或 `Authorization: Bearer <key>` 进行认证。
+
+### 步骤 2: 在 Dify 中配置 MCP 工具
+
+1. 登录 [Dify](https://dify.ai/)
+2. 进入 **工具** > **MCP 工具**
+3. 点击 **添加 MCP 服务器**
+4. 使用以下方式之一配置 MCP 服务器：
+
+#### 选项 A：SSE 端点（传统方式）
+
+**服务器名称**: `Universal DB MCP`
+
+**服务器 URL**:
+```
+http://your-server:3000/sse?type=mysql&host=db-host&port=3306&user=root&password=your_password&database=your_database
+```
+
+**请求头**（如果配置了 API_KEYS）:
+```
+X-API-Key: your-secret-key
+```
+
+数据库配置通过 URL 参数传递。
+
+#### 选项 B：Streamable HTTP 端点（推荐）
+
+**服务器名称**: `Universal DB MCP`
+
+**服务器 URL**:
+```
+http://your-server:3000/mcp
+```
+
+**请求头**:
+```
+X-API-Key: your-secret-key
+X-DB-Type: mysql
+X-DB-Host: db-host
+X-DB-Port: 3306
+X-DB-User: root
+X-DB-Password: your_password
+X-DB-Database: your_database
+```
+
+数据库配置通过 HTTP 请求头传递。
+
+### 可用端点
+
+| 端点 | 方法 | 说明 |
+|------|------|------|
+| `/sse` | GET | 建立 SSE 连接（传统方式） |
+| `/sse/message` | POST | 向 SSE 会话发送消息 |
+| `/mcp` | POST | Streamable HTTP 端点（推荐） |
+| `/mcp` | GET | Streamable HTTP 的 SSE 流 |
+| `/mcp` | DELETE | 关闭会话 |
+
+### 步骤 3: 在应用中使用 MCP 工具
+
+配置完成后，以下 MCP 工具将在您的 Dify 应用中可用：
+
+| 工具 | 描述 |
+|------|------|
+| `execute_query` | 执行 SQL 查询 |
+| `get_schema` | 获取数据库结构信息 |
+| `get_table_info` | 获取表详细信息 |
+| `clear_cache` | 清除 Schema 缓存 |
+
+### MCP SSE URL 参数
+
+| 参数 | 必填 | 描述 |
+|------|------|------|
+| `type` | 是 | 数据库类型：mysql、postgres、redis、oracle、dm、sqlserver、mongodb、sqlite、kingbase、gaussdb、oceanbase、tidb、clickhouse、polardb、vastbase、highgo、goldendb |
+| `host` | 是* | 数据库主机 |
+| `port` | 否 | 数据库端口（不指定则使用默认端口） |
+| `user` | 是* | 数据库用户名 |
+| `password` | 是* | 数据库密码 |
+| `database` | 是* | 数据库名称 |
+| `filePath` | 是* | SQLite 文件路径（仅 sqlite 类型） |
+| `allowWrite` | 否 | 启用写操作（默认：false） |
+
+*必填字段取决于数据库类型
+
+### SSE URL 示例
+
+**MySQL:**
+```
+http://localhost:3000/sse?type=mysql&host=localhost&port=3306&user=root&password=secret&database=myapp
+```
+
+**PostgreSQL:**
+```
+http://localhost:3000/sse?type=postgres&host=localhost&port=5432&user=postgres&password=secret&database=myapp
+```
+
+**SQLite:**
+```
+http://localhost:3000/sse?type=sqlite&filePath=/path/to/database.db
+```
+
+**Redis:**
+```
+http://localhost:3000/sse?type=redis&host=localhost&port=6379&password=secret
+```
+
+**达梦数据库:**
+```
+http://localhost:3000/sse?type=dm&host=localhost&port=5236&user=SYSDBA&password=secret&database=DAMENG
+```
+
+**人大金仓:**
+```
+http://localhost:3000/sse?type=kingbase&host=localhost&port=54321&user=system&password=secret&database=mydb
+```
+
+### Streamable HTTP 请求头参数
+
+| 请求头 | 必填 | 描述 |
+|--------|------|------|
+| `X-DB-Type` | 是 | 数据库类型：mysql、postgres、redis、oracle、dm、sqlserver、mongodb、sqlite、kingbase、gaussdb、oceanbase、tidb、clickhouse、polardb、vastbase、highgo、goldendb |
+| `X-DB-Host` | 是* | 数据库主机 |
+| `X-DB-Port` | 否 | 数据库端口（不指定则使用默认端口） |
+| `X-DB-User` | 是* | 数据库用户名 |
+| `X-DB-Password` | 是* | 数据库密码 |
+| `X-DB-Database` | 是* | 数据库名称 |
+| `X-DB-FilePath` | 是* | SQLite 文件路径（仅 sqlite 类型） |
+| `X-DB-Allow-Write` | 否 | 启用写操作（默认：false） |
+| `X-DB-Oracle-Client-Path` | 否 | Oracle Instant Client 路径（用于 Oracle 11g） |
+| `mcp-session-id` | 否 | 后续请求的会话 ID |
+
+*必填字段取决于数据库类型
+
+### Streamable HTTP 请求示例
+
+**初始化连接（MySQL）：**
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -H "X-DB-Type: mysql" \
+  -H "X-DB-Host: localhost" \
+  -H "X-DB-Port: 3306" \
+  -H "X-DB-User: root" \
+  -H "X-DB-Password: secret" \
+  -H "X-DB-Database: myapp" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}},"id":1}'
+```
+
+**后续请求（带会话 ID）：**
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "Content-Type: application/json" \
+  -H "mcp-session-id: your-session-id" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":2}'
+```
+
+---
+
+## 方式二：自定义 API 工具集成
+
+此方式使用 Dify 的自定义 API 工具功能，通过 REST API 端点集成。
 
 ### 步骤 1: 部署 HTTP API 服务器
 

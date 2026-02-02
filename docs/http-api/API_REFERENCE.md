@@ -2,7 +2,7 @@
 
 ## Overview
 
-Universal Database MCP Server HTTP API provides RESTful endpoints for database operations. This API supports 17 database types and includes features like session management, API key authentication, rate limiting, and CORS support.
+Universal Database MCP Server HTTP API provides RESTful endpoints and MCP protocol endpoints for database operations. This API supports 17 database types and includes features like session management, API key authentication, rate limiting, and CORS support.
 
 **Base URL**: `http://localhost:3000` (configurable via `HTTP_PORT` environment variable)
 
@@ -10,7 +10,9 @@ Universal Database MCP Server HTTP API provides RESTful endpoints for database o
 
 ## Authentication
 
-All endpoints (except `/api/health` and `/api/info`) require API key authentication.
+All endpoints (except `/api/health` and `/api/info`) require API key authentication, including REST API and MCP SSE/Streamable HTTP endpoints.
+
+> **Note**: If `API_KEYS` environment variable is not configured, authentication is skipped (development mode).
 
 ### Methods
 
@@ -89,6 +91,130 @@ RATE_LIMIT_WINDOW=1m  # 1m, 1h, 1d
 ```
 
 ## Endpoints
+
+### MCP Protocol Endpoints
+
+MCP (Model Context Protocol) endpoints allow AI platforms like Dify to connect to databases directly via the MCP protocol.
+
+#### SSE Endpoints (Legacy)
+
+##### GET /sse
+
+Establish an SSE connection. Database configuration is passed via URL parameters.
+
+**URL Parameters**:
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `type` | Yes | Database type |
+| `host` | Yes* | Database host |
+| `port` | No | Database port |
+| `user` | Yes* | Username |
+| `password` | Yes* | Password |
+| `database` | Yes* | Database name |
+| `filePath` | Yes* | SQLite file path |
+| `allowWrite` | No | Enable write operations (default: false) |
+
+*Required fields depend on database type
+
+**Request Example**:
+```bash
+curl "http://localhost:3000/sse?type=mysql&host=localhost&port=3306&user=root&password=secret&database=mydb" \
+  -H "X-API-Key: your-secret-key"
+```
+
+##### POST /sse/message
+
+Send a message to an SSE session.
+
+**Query Parameters**:
+- `sessionId` (string, required): SSE session ID
+
+**Request Example**:
+```bash
+curl -X POST "http://localhost:3000/sse/message?sessionId=your-session-id" \
+  -H "X-API-Key: your-secret-key" \
+  -H "Content-Type: application/json" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":1}'
+```
+
+#### Streamable HTTP Endpoints (MCP 2025 Spec, Recommended)
+
+##### POST /mcp
+
+MCP Streamable HTTP endpoint. Database configuration is passed via headers.
+
+**Header Parameters**:
+| Header | Required | Description |
+|--------|----------|-------------|
+| `X-API-Key` | Yes* | API key (or use Authorization Bearer) |
+| `X-DB-Type` | Yes | Database type |
+| `X-DB-Host` | Yes* | Database host |
+| `X-DB-Port` | No | Database port |
+| `X-DB-User` | Yes* | Username |
+| `X-DB-Password` | Yes* | Password |
+| `X-DB-Database` | Yes* | Database name |
+| `X-DB-FilePath` | Yes* | SQLite file path |
+| `X-DB-Allow-Write` | No | Enable write operations (default: false) |
+| `mcp-session-id` | No | Session ID for subsequent requests |
+
+*Required fields depend on database type; authentication required if API_KEYS is configured
+
+**Initialize Request Example**:
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "X-API-Key: your-secret-key" \
+  -H "Content-Type: application/json" \
+  -H "X-DB-Type: mysql" \
+  -H "X-DB-Host: localhost" \
+  -H "X-DB-Port: 3306" \
+  -H "X-DB-User: root" \
+  -H "X-DB-Password: secret" \
+  -H "X-DB-Database: mydb" \
+  -d '{"jsonrpc":"2.0","method":"initialize","params":{"protocolVersion":"2024-11-05","capabilities":{},"clientInfo":{"name":"test","version":"1.0.0"}},"id":1}'
+```
+
+**Subsequent Request Example** (with session ID):
+```bash
+curl -X POST http://localhost:3000/mcp \
+  -H "X-API-Key: your-secret-key" \
+  -H "Content-Type: application/json" \
+  -H "mcp-session-id: your-session-id" \
+  -d '{"jsonrpc":"2.0","method":"tools/list","id":2}'
+```
+
+##### GET /mcp
+
+Get SSE stream for Streamable HTTP.
+
+**Headers**:
+- `mcp-session-id` (string, required): Session ID
+- `X-API-Key` (string, required*): API key
+
+##### DELETE /mcp
+
+Close an MCP session.
+
+**Query Parameters or Headers**:
+- `sessionId` or `mcp-session-id`: Session ID
+
+**Request Example**:
+```bash
+curl -X DELETE "http://localhost:3000/mcp?sessionId=your-session-id" \
+  -H "X-API-Key: your-secret-key"
+```
+
+#### MCP Tools
+
+The following tools are available after connecting via MCP protocol:
+
+| Tool Name | Description |
+|-----------|-------------|
+| `execute_query` | Execute SQL queries or database commands |
+| `get_schema` | Get database schema information |
+| `get_table_info` | Get detailed information about a specific table |
+| `clear_cache` | Clear schema cache |
+
+### REST API Endpoints
 
 ### Health & Info
 
